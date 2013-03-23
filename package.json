@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "nodecopter-baff",
   "version": "0.1.1",
   "dependencies": {
@@ -11,4 +12,19 @@
   },
   "author": "Bernhard K. Weisshuhn <bkw@codingforce.com>",
   "license": "BSD"
+=======
+  "name": "nodecopter",
+  "description": "nodecopter",
+  "version": "0.0.1-3",
+  "author": "Mauro Pompilio <hackers.are.rockstars@gmail.com>",
+  "private": true,
+  "engines": {
+    "node": ">= 0.6.0"
+  },
+  "dependencies": {
+    "coffee-script": "",
+    "ar-drone": "",
+    "dronestream": ""
+  }
+>>>>>>> 16141acc7d11961268b7980dd1b22d7b0a9b8080
 }

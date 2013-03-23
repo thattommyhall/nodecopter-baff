@@ -10,3 +10,8 @@ client
     this.stop()
     this.land()
 
+client.config('general:navdata_demo', 'FALSE')
+
+client.on 'navdata', (data) ->
+  console.log data
+
