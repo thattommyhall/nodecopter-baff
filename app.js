@@ -21,5 +21,5 @@ app.configure('development', function () {
 
 app.get('/', routes.index);
 
-require("dronestream").listen(server);
+require("./node-dronestream/index").listen(server);
 server.listen(3000);
