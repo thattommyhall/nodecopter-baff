@@ -45,7 +45,8 @@
     var NS,
         socket,
         avc,
-        webGLCanvas;
+        webGLCanvas,
+        old_buffer;
 
     function setupAvc() {
         avc = new Avc();
@@ -63,12 +64,13 @@
     }
 
    function diff(o,n) {
+     console.log('diff');
      return n;
    }
 
    function handleDecodedFrame(buffer, width, height) {
-     current_buffer = buffer;
-     buffer = diff(old_buffer,new_buffer);
+     var current_buffer = buffer;
+     var buffer = diff(old_buffer,buffer);
      old_buffer = current_buffer;
      requestAnimationFrame(function () {
                              var lumaSize = width * height,

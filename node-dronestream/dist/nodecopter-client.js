@@ -1144,7 +1144,8 @@ var FilterWebGLCanvas = (function () {
     var NS,
         socket,
         avc,
-        webGLCanvas;
+        webGLCanvas,
+        old_buffer;
 
     function setupAvc() {
         avc = new Avc();
@@ -1161,16 +1162,24 @@ var FilterWebGLCanvas = (function () {
         avc.decode(new Uint8Array(message.data));
     }
 
-    function handleDecodedFrame(buffer, width, height) {
-        requestAnimationFrame(function () {
-            var lumaSize = width * height,
-            chromaSize = lumaSize >> 2;
-            webGLCanvas.YTexture.fill(buffer.subarray(0, lumaSize));
-            webGLCanvas.UTexture.fill(buffer.subarray(lumaSize, lumaSize + chromaSize));
-            webGLCanvas.VTexture.fill(buffer.subarray(lumaSize + chromaSize, lumaSize + 2 * chromaSize));
-            webGLCanvas.drawScene();
-        });
-    }
+   function diff(o,n) {
+     console.log('diff');
+     return n;
+   }
+
+   function handleDecodedFrame(buffer, width, height) {
+     var current_buffer = buffer;
+     var buffer = diff(old_buffer,buffer);
+     old_buffer = current_buffer;
+     requestAnimationFrame(function () {
+                             var lumaSize = width * height,
+                             chromaSize = lumaSize >> 2;
+                             webGLCanvas.YTexture.fill(buffer.subarray(0, lumaSize));
+                             webGLCanvas.UTexture.fill(buffer.subarray(lumaSize, lumaSize + chromaSize));
+                             webGLCanvas.VTexture.fill(buffer.subarray(lumaSize + chromaSize, lumaSize + 2 * chromaSize));
+                             webGLCanvas.drawScene();
+                           });
+   }
 
     function setupCanvas(div) {
         var width = div.attributes.width ? div.attributes.width.value : 640,
