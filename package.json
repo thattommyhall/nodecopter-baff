@@ -1,0 +1,14 @@
+{
+  "name": "nodecopter-baff",
+  "version": "0.1.1",
+  "dependencies": {
+    "express": "3.0.x",
+    "jade": "*",
+    "dronestream": "*"
+  },
+  "scripts": {
+    "start": "node app"
+  },
+  "author": "Bernhard K. Weisshuhn <bkw@codingforce.com>",
+  "license": "BSD"
+}
