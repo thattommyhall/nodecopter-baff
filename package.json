@@ -7,7 +7,7 @@
   "dependencies": {
     "coffee-script": "",
     "ar-drone": "*",
-    "dronestream": "*"
+    "dronestream": "*",
     "express": "3.0.x",
     "jade": "*",
     "dronestream": "*"
