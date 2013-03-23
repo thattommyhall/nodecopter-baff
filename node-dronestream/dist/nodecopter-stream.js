@@ -3,71 +3,97 @@
 
 /* requestAnimationFrame polyfill: */
 (function (window) {
-    'use strict';
-    var lastTime = 0,
-        vendors = ['ms', 'moz', 'webkit', 'o'],
-        x,
-        length,
-        currTime,
-        timeToCall;
+   'use strict';
+   var lastTime = 0,
+   vendors = ['ms', 'moz', 'webkit', 'o'],
+   x,
+   length,
+   currTime,
+   timeToCall;
 
-    for (x = 0, length = vendors.length; x < length && !window.requestAnimationFrame; ++x) {
-        window.requestAnimationFrame = window[
-            vendors[x] + 'RequestAnimationFrame'
-        ];
-        window.cancelAnimationFrame = window[
-            vendors[x] + 'CancelAnimationFrame'
-        ] || window[vendors[x] + 'CancelRequestAnimationFrame'];
-    }
+   for (x = 0, length = vendors.length; x < length && !window.requestAnimationFrame; ++x) {
+     window.requestAnimationFrame = window[
+       vendors[x] + 'RequestAnimationFrame'
+     ];
+     window.cancelAnimationFrame = window[
+       vendors[x] + 'CancelAnimationFrame'
+     ] || window[vendors[x] + 'CancelRequestAnimationFrame'];
+   }
 
-    if (!window.requestAnimationFrame) {
-        window.requestAnimationFrame = function (callback, element) {
-            currTime = new Date().getTime();
-            timeToCall = Math.max(0, 16 - (currTime - lastTime));
-            lastTime = currTime + timeToCall;
-            return window.setTimeout(function () {
-                callback(currTime + timeToCall);
-            }, timeToCall);
-        };
-    }
+   if (!window.requestAnimationFrame) {
+     window.requestAnimationFrame = function (callback, element) {
+       currTime = new Date().getTime();
+       timeToCall = Math.max(0, 16 - (currTime - lastTime));
+       lastTime = currTime + timeToCall;
+       return window.setTimeout(function () {
+                                  callback(currTime + timeToCall);
+                                }, timeToCall);
+     };
+   }
 
-    if (!window.cancelAnimationFrame) {
-        window.cancelAnimationFrame = function (id) {
-            clearTimeout(id);
-        };
-    }
-}(window));
+   if (!window.cancelAnimationFrame) {
+     window.cancelAnimationFrame = function (id) {
+       clearTimeout(id);
+     };
+   }
+ }(window));
 
 
 /* NodeCopterStream: */
 (function (window, document, undefined) {
-    'use strict';
-    var NS,
-        socket,
-        avc,
-        webGLCanvas,
-        old_buffer;
+   'use strict';
+   var NS,
+   socket,
+   avc,
+   webGLCanvas,
+   old_buffer;
 
-    function setupAvc() {
-        avc = new Avc();
-        avc.configure({
-            filter: 'original',
-            filterHorLuma: 'optimized',
-            filterVerLumaEdge: 'optimized',
-            getBoundaryStrengthsA: 'optimized'
-        });
-        avc.onPictureDecoded = handleDecodedFrame;
-    }
-
-    function handleNalUnits(message) {
-        avc.decode(new Uint8Array(message.data));
-    }
-
-   function diff(o,n) {
-     console.log('diff');
-     return n;
+   function setupAvc() {
+     avc = new Avc();
+     avc.configure({
+                     filter: 'original',
+                     filterHorLuma: 'optimized',
+                     filterVerLumaEdge: 'optimized',
+                     getBoundaryStrengthsA: 'optimized'
+                   });
+     avc.onPictureDecoded = handleDecodedFrame;
    }
 
+   function handleNalUnits(message) {
+     avc.decode(new Uint8Array(message.data));
+   }
+
+
+   function diff(o,n) {
+     var result = []; 
+	   differenceAccuracy(result, n, o);
+	   contextBlended.putImageData(blendedData, 0, 0);
+     return result;
+   }
+
+   function fastAbs(value) {
+	   // funky bitwise, equal Math.abs
+	   return (value ^ (value >> 31)) - (value >> 31);
+   }
+
+   function threshold(value) {
+	   return (value > 0x15) ? 0xFF : 0;
+   }
+
+   function differenceAccuracy(target, data1, data2) {
+	   if (data1.length != data2.length) return null;
+	   var i = 0;
+	   while (i < (data1.length * 0.25)) {
+		   var average1 = (data1[4*i] + data1[4*i+1] + data1[4*i+2]) / 3;
+		   var average2 = (data2[4*i] + data2[4*i+1] + data2[4*i+2]) / 3;
+		   var diff = threshold(fastAbs(average1 - average2));
+		   target[4*i] = diff;
+		   target[4*i+1] = diff;
+		   target[4*i+2] = diff;
+		   target[4*i+3] = 0xFF;
+		   ++i;
+	   }
+   }
    function handleDecodedFrame(buffer, width, height) {
      var current_buffer = buffer;
      var buffer = diff(old_buffer,buffer);
@@ -82,33 +108,33 @@
                            });
    }
 
-    function setupCanvas(div) {
-        var width = div.attributes.width ? div.attributes.width.value : 640,
-            height = div.attributes.height ? div.attributes.height.value : 360,
-            canvas = document.createElement('canvas');
+   function setupCanvas(div) {
+     var width = div.attributes.width ? div.attributes.width.value : 640,
+     height = div.attributes.height ? div.attributes.height.value : 360,
+     canvas = document.createElement('canvas');
 
-        canvas.width = width;
-        canvas.height = height;
-        canvas.style.backgroundColor = "#333333";
-        div.appendChild(canvas);
+     canvas.width = width;
+     canvas.height = height;
+     canvas.style.backgroundColor = "#333333";
+     div.appendChild(canvas);
 
-        webGLCanvas = new YUVWebGLCanvas(canvas, new Size(width, height));
-    }
+     webGLCanvas = new YUVWebGLCanvas(canvas, new Size(width, height));
+   }
 
 
-    NS = function (div) {
-        setupCanvas(div);
-        setupAvc();
+   NS = function (div) {
+     setupCanvas(div);
+     setupAvc();
 
-        socket = new WebSocket(
-             'ws://' +
-            window.document.location.hostname + ':' +
-            window.document.location.port + '/dronestream'
-        );
-        socket.binaryType = 'arraybuffer';
-        socket.onmessage = handleNalUnits;
-    };
+     socket = new WebSocket(
+       'ws://' +
+         window.document.location.hostname + ':' +
+         window.document.location.port + '/dronestream'
+     );
+     socket.binaryType = 'arraybuffer';
+     socket.onmessage = handleNalUnits;
+   };
 
-    window.NodecopterStream = NS;
+   window.NodecopterStream = NS;
 
-}(window, document, undefined));
+ }(window, document, undefined));
